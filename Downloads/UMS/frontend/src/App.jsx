@@ -11,6 +11,8 @@ import RoleGuard from './components/RoleGuard';
 
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
+import LandingPage from './pages/shared/LandingPage';
+import { getSystemTheme, applyTheme } from './utils/theme';
 
 import DashboardPage from './pages/admin/DashboardPage';
 import DepartmentsPage from './pages/admin/DepartmentsPage';
@@ -18,6 +20,7 @@ import SemestersPage from './pages/admin/SemestersPage';
 import CoursesPage from './pages/admin/CoursesPage';
 import FacultyPage from './pages/admin/FacultyPage';
 import AdminRegistrationsPage from './pages/admin/AdminRegistrationsPage';
+import AdminProfileApprovalsPage from './pages/admin/AdminProfileApprovalsPage';
 import AuditPage from './pages/admin/AuditPage';
 import NotificationsPage from './pages/admin/NotificationsPage';
 
@@ -64,6 +67,7 @@ const App = () => {
 
   // On app boot: silently try to restore session using refresh token
   useEffect(() => {
+    applyTheme(getSystemTheme());
     const restore = async () => {
       const storedRefresh = sessionStorage.getItem('ums_refresh_token');
       const userMetaRaw = sessionStorage.getItem('ums_user_meta');
@@ -109,6 +113,7 @@ const App = () => {
   return (
     <Routes>
       {/* ── Public routes ────────────────────────────────── */}
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
@@ -116,17 +121,18 @@ const App = () => {
       {/* ── Protected routes (require login) ─────────────── */}
       <Route element={<PrivateRoute />}>
         <Route element={<Layout />}>
-          <Route path="/" element={<HomeRedirect />} />
+          <Route path="/dashboard" element={<HomeRedirect />} />
 
           {/* Admin-only routes */}
-          <Route path="/admin/dashboard"     element={<RoleGuard allowedRoles={['ADMIN']}><DashboardPage /></RoleGuard>} />
-          <Route path="/admin/departments"   element={<RoleGuard allowedRoles={['ADMIN']}><DepartmentsPage /></RoleGuard>} />
-          <Route path="/admin/semesters"     element={<RoleGuard allowedRoles={['ADMIN']}><SemestersPage /></RoleGuard>} />
-          <Route path="/admin/courses"       element={<RoleGuard allowedRoles={['ADMIN']}><CoursesPage /></RoleGuard>} />
-          <Route path="/admin/faculty"       element={<RoleGuard allowedRoles={['ADMIN']}><FacultyPage /></RoleGuard>} />
-          <Route path="/admin/registrations" element={<RoleGuard allowedRoles={['ADMIN']}><AdminRegistrationsPage /></RoleGuard>} />
-          <Route path="/admin/audit"         element={<RoleGuard allowedRoles={['ADMIN']}><AuditPage /></RoleGuard>} />
-          <Route path="/admin/notifications" element={<RoleGuard allowedRoles={['ADMIN']}><NotificationsPage /></RoleGuard>} />
+          <Route path="/admin/dashboard"          element={<RoleGuard allowedRoles={['ADMIN']}><DashboardPage /></RoleGuard>} />
+          <Route path="/admin/departments"        element={<RoleGuard allowedRoles={['ADMIN']}><DepartmentsPage /></RoleGuard>} />
+          <Route path="/admin/semesters"          element={<RoleGuard allowedRoles={['ADMIN']}><SemestersPage /></RoleGuard>} />
+          <Route path="/admin/courses"            element={<RoleGuard allowedRoles={['ADMIN']}><CoursesPage /></RoleGuard>} />
+          <Route path="/admin/faculty"            element={<RoleGuard allowedRoles={['ADMIN']}><FacultyPage /></RoleGuard>} />
+          <Route path="/admin/profile-approvals"  element={<RoleGuard allowedRoles={['ADMIN']}><AdminProfileApprovalsPage /></RoleGuard>} />
+          <Route path="/admin/registrations"      element={<RoleGuard allowedRoles={['ADMIN']}><AdminRegistrationsPage /></RoleGuard>} />
+          <Route path="/admin/audit"              element={<RoleGuard allowedRoles={['ADMIN']}><AuditPage /></RoleGuard>} />
+          <Route path="/admin/notifications"      element={<RoleGuard allowedRoles={['ADMIN']}><NotificationsPage /></RoleGuard>} />
 
           {/* Faculty routes */}
           <Route path="/faculty/pending"       element={<RoleGuard allowedRoles={['FACULTY', 'ADMIN']}><PendingRegistrationsPage /></RoleGuard>} />

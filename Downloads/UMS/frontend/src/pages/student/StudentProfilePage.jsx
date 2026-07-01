@@ -3,12 +3,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Card, Row, Col, Badge, Spinner } from 'react-bootstrap';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { fetchStudentProfile, createProfile, selectStudentProfile } from '../../store/slices/studentSlice';
+import { fetchStudentProfile, createProfile, editProfile, selectStudentProfile } from '../../store/slices/studentSlice';
 import { selectUser } from '../../store/slices/authSlice';
 import { fetchDepartments, selectDepartments } from '../../store/slices/academicSlice';
 import { getProfile } from '../../api/authApi';
 
-// Enrollment status and max credits are controlled by admin — not editable by student
 const profileSchema = Yup.object({
   email: Yup.string().email('Invalid email address').required('Email is required'),
   firstName: Yup.string().required('First name is required').min(2),
@@ -24,29 +23,23 @@ const StudentProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [profileError, setProfileError] = useState('');
   const [prefillEmail, setPrefillEmail] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     dispatch(fetchDepartments());
-
-    // Try to get current profile
     dispatch(fetchStudentProfile()).finally(() => setLoading(false));
 
-    // Pre-fill email from auth profile (gateway injects X-User-Username automatically)
     getProfile()
       .then((res) => {
         if (res.data?.data?.email) {
           setPrefillEmail(res.data.data.email);
         }
       })
-      .catch(() => {
-        // Silently ignore — user can type email manually
-      });
+      .catch(() => {});
   }, [dispatch]);
 
   const handleCreateProfile = async (values, { setSubmitting }) => {
     setProfileError('');
-
-    // userId MUST come from the decoded JWT stored in auth state
     const userId = user?.userId;
     if (!userId) {
       setProfileError('Session error: userId not found. Please log out and log in again.');
@@ -61,15 +54,27 @@ const StudentProfilePage = () => {
         email: values.email,
         firstName: values.firstName,
         lastName: values.lastName,
-        // Admin-controlled fields — student cannot set these
-        enrollmentStatus: 'ACTIVE',
-        maxCredits: 18,
-        currentCredits: 0,
         departmentId: Number(values.departmentId),
       })).unwrap();
     } catch (e) {
-      // Show a clean error message (not raw backend exception)
       const msg = typeof e === 'string' ? e : 'Failed to create profile. Please try again.';
+      setProfileError(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUpdateProfile = async (values, { setSubmitting }) => {
+    setProfileError('');
+    try {
+      await dispatch(editProfile({
+        firstName: values.firstName,
+        lastName: values.lastName,
+        departmentId: Number(values.departmentId),
+      })).unwrap();
+      setIsEditing(false);
+    } catch (e) {
+      const msg = typeof e === 'string' ? e : 'Failed to update profile. Please try again.';
       setProfileError(msg);
     } finally {
       setSubmitting(false);
@@ -84,6 +89,8 @@ const StudentProfilePage = () => {
     );
   }
 
+  const showForm = !profile || isEditing;
+
   return (
     <div className="page-container">
       <div className="page-header mb-4">
@@ -91,13 +98,12 @@ const StudentProfilePage = () => {
         <p className="page-subtitle">Student profile and enrollment information</p>
       </div>
 
-      {profile ? (
+      {!showForm && profile ? (
         /* ─── Existing profile view ─────────────────────────────────────── */
         <Row className="justify-content-center">
           <Col md={10} lg={7}>
             <Card className="ums-profile-card">
               <Card.Body className="p-0">
-                {/* Profile header band */}
                 <div className="profile-header-band">
                   <div className="profile-avatar-lg">
                     {(profile.firstName?.charAt(0) || profile.username?.charAt(0) || '?').toUpperCase()}
@@ -110,15 +116,25 @@ const StudentProfilePage = () => {
                       : profile.username}
                   </h3>
                   <code className="text-muted">@{profile.username}</code>
-                  <div className="mt-2 mb-4">
+                  
+                  <div className="mt-2 mb-4 d-flex justify-content-center gap-2 align-items-center">
                     <Badge
-                      bg={profile.enrollmentStatus === 'ACTIVE' ? 'success' : 'warning'}
+                      bg={
+                        profile.enrollmentStatus === 'ACTIVE' ? 'success' :
+                        profile.enrollmentStatus === 'PENDING' ? 'warning' : 'danger'
+                      }
                       className="ums-badge fs-6"
                     >
                       <i className="bi bi-circle-fill me-1" style={{ fontSize: '0.5rem' }}></i>
                       {profile.enrollmentStatus}
                     </Badge>
                   </div>
+
+                  {profile.enrollmentStatus === 'REJECTED' && profile.rejectionReason && (
+                    <div className="alert alert-danger mb-4 text-start">
+                      <strong>Rejection Reason:</strong> {profile.rejectionReason}
+                    </div>
+                  )}
 
                   <div className="profile-info-grid">
                     <div className="profile-info-item">
@@ -157,7 +173,7 @@ const StudentProfilePage = () => {
                   </div>
 
                   {/* Credits progress */}
-                  <div className="credits-section mt-4">
+                  <div className="credits-section mt-4 mb-4">
                     <div className="d-flex justify-content-between mb-2">
                       <span className="fw-semibold small">Credit Hours</span>
                       <span className="fw-bold small text-primary">
@@ -172,27 +188,50 @@ const StudentProfilePage = () => {
                         }}
                       />
                     </div>
-                    <div className="text-muted small mt-1">
+                    <div className="text-muted small mt-1 text-start">
                       {profile.maxCredits - (profile.currentCredits || 0)} credits remaining
                     </div>
                   </div>
+
+                  {/* Edit/Resubmit button */}
+                  {(profile.enrollmentStatus === 'PENDING' || profile.enrollmentStatus === 'REJECTED' || profile.enrollmentStatus === 'ACTIVE') && (
+                    <button
+                      className="btn ums-btn-outline w-100 py-2"
+                      onClick={() => setIsEditing(true)}
+                    >
+                      <i className="bi bi-pencil-square me-2"></i>
+                      {profile.enrollmentStatus === 'REJECTED' ? 'Resubmit Profile' : 'Edit Profile'}
+                    </button>
+                  )}
                 </div>
               </Card.Body>
             </Card>
           </Col>
         </Row>
       ) : (
-        /* ─── Create profile form ────────────────────────────────────────── */
+        /* ─── Create or Edit profile form ────────────────────────────────── */
         <Row className="justify-content-center">
           <Col md={9} lg={7}>
             <Card className="ums-card">
-              <Card.Header className="ums-card-header">
-                <i className="bi bi-person-plus me-2"></i>Complete Your Student Profile
+              <Card.Header className="ums-card-header d-flex justify-content-between align-items-center">
+                <span>
+                  <i className="bi bi-person-plus me-2"></i>
+                  {profile ? 'Edit Student Profile' : 'Complete Your Student Profile'}
+                </span>
+                {profile && (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-secondary text-white"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Cancel
+                  </button>
+                )}
               </Card.Header>
               <Card.Body className="p-4">
                 <p className="text-muted small mb-4">
                   <i className="bi bi-info-circle me-1 text-primary"></i>
-                  Please fill in your details to activate your student account.
+                  Please fill in your details. Your profile will need to be approved by an administrator.
                 </p>
 
                 {profileError && (
@@ -204,14 +243,14 @@ const StudentProfilePage = () => {
 
                 <Formik
                   initialValues={{
-                    email: prefillEmail,
-                    firstName: '',
-                    lastName: '',
-                    departmentId: '',
+                    email: profile?.email || prefillEmail,
+                    firstName: profile?.firstName || '',
+                    lastName: profile?.lastName || '',
+                    departmentId: profile?.departmentId || '',
                   }}
                   enableReinitialize
                   validationSchema={profileSchema}
-                  onSubmit={handleCreateProfile}
+                  onSubmit={profile ? handleUpdateProfile : handleCreateProfile}
                 >
                   {({ isSubmitting, touched, errors }) => (
                     <Form noValidate>
@@ -224,9 +263,9 @@ const StudentProfilePage = () => {
                           id="stu-email"
                           name="email"
                           type="email"
+                          disabled={!!profile} // Don't allow changing email if profile exists
                           className={`form-control ums-input ${touched.email && errors.email ? 'is-invalid' : touched.email ? 'is-valid' : ''}`}
                           placeholder="yourname@university.edu"
-                          autoComplete="email"
                         />
                         <ErrorMessage name="email" component="div" className="invalid-feedback" />
                       </div>

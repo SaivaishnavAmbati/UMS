@@ -611,21 +611,23 @@ html, body {
   color: #fca5a5;
 }
 
-/* ─── Course Cards ───────────────────────────────────────────────────────────── */
 .course-card {
   background: var(--color-surface) !important;
   border: 1px solid var(--color-border) !important;
   border-radius: var(--radius-lg) !important;
   transition: all 0.25s ease;
+  color: var(--text-primary) !important;
 }
 .course-card:hover {
   border-color: rgba(99, 102, 241, 0.4) !important;
   transform: translateY(-4px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(99, 102, 241, 0.2);
 }
-.course-title { font-weight: 700; color: var(--text-primary); }
+.course-title { font-weight: 700; color: var(--text-primary) !important; }
+.course-card h5 { color: var(--text-primary) !important; }
+.course-card p, .course-card .text-muted { color: var(--text-secondary) !important; }
 .course-meta { display: flex; gap: 16px; }
-.course-meta-item { font-size: 0.8rem; color: var(--text-muted); }
+.course-meta-item { font-size: 0.8rem; color: var(--text-secondary) !important; }
 
 /* ─── Active Semester Banner ─────────────────────────────────────────────────── */
 .active-semester-banner {
@@ -917,5 +919,355 @@ html, body {
   border-radius: var(--radius-md);
   padding: 16px;
   text-align: left;
+}
+
+/* ─── Tabs Styling ───────────────────────────────────────────────────────────── */
+.ums-tabs.nav-tabs {
+  border-bottom: 1px solid var(--color-border) !important;
+  gap: 8px;
+}
+.ums-tabs.nav-tabs .nav-link {
+  color: var(--text-secondary) !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  font-weight: 600;
+  padding: 10px 20px;
+  transition: all 0.2s;
+}
+.ums-tabs.nav-tabs .nav-link:hover {
+  color: var(--text-primary) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: var(--color-border) var(--color-border) transparent !important;
+}
+.ums-tabs.nav-tabs .nav-link.active {
+  color: var(--color-primary-light) !important;
+  background: var(--color-surface) !important;
+  border-color: var(--color-border) var(--color-border) transparent !important;
+  box-shadow: inset 0 -2px 0 var(--color-primary);
+}
+
+/* ─── Text Contrast Overrides ────────────────────────────────────────────── */
+.ums-profile-card {
+  color: var(--text-primary) !important;
+}
+.reg-card {
+  color: var(--text-primary) !important;
+}
+.ums-info-box {
+  color: var(--text-primary) !important;
+}
+.ums-modal {
+  color: var(--text-primary) !important;
+}
+.ums-input option {
+  background-color: var(--color-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ─── Autofill Styling overrides ────────────────────────────────────────── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--color-bg-secondary) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+/* ─── Text Contrast Overrides ────────────────────────────────────────────── */
+.ums-card .text-muted, 
+.ums-profile-card .text-muted,
+.card-body .text-muted,
+p.text-muted {
+  color: #e2e8f0 !important; /* bright slate-200, highly visible */
+}
+
+/* ─── Alert Visibility Overrides ────────────────────────────────────────── */
+.alert {
+  color: #ffffff !important;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+.alert-danger {
+  background-color: rgba(239, 68, 68, 0.25) !important;
+  border: 1px solid rgba(239, 68, 68, 0.5) !important;
+}
+.alert-warning {
+  background-color: rgba(245, 158, 11, 0.25) !important;
+  border: 1px solid rgba(245, 158, 11, 0.5) !important;
+}
+.alert-success {
+  background-color: rgba(16, 185, 129, 0.25) !important;
+  border: 1px solid rgba(16, 185, 129, 0.5) !important;
+}
+.alert-info {
+  background-color: rgba(59, 130, 246, 0.25) !important;
+  border: 1px solid rgba(59, 130, 246, 0.5) !important;
+}
+
+/* ─── Landing Page Styles ─────────────────────────────────────────────────── */
+.landing-page {
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 10% 10%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
+              radial-gradient(ellipse at 90% 90%, rgba(139, 92, 246, 0.1) 0%, transparent 60%),
+              var(--color-bg);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.landing-nav {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(10, 14, 26, 0.8);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.landing-logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-primary-light);
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--color-primary-light), #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.landing-logo i {
+  -webkit-text-fill-color: var(--color-primary-light);
+}
+
+.landing-hero {
+  padding: 100px 0 80px;
+  text-align: center;
+  position: relative;
+}
+
+.landing-hero-title {
+  font-size: 3.5rem;
+  font-weight: 900;
+  letter-spacing: -1.5px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #ffffff 30%, var(--color-primary-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.landing-hero-subtitle {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  max-width: 700px;
+  margin: 0 auto 40px;
+  line-height: 1.7;
+}
+
+.landing-section {
+  padding: 80px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.landing-section-title {
+  text-align: center;
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+
+.landing-section-subtitle {
+  text-align: center;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto 48px;
+}
+
+.landing-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100%;
+}
+
+.landing-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--color-border-active);
+  box-shadow: var(--shadow-glow);
+}
+
+.landing-card-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--color-primary-light);
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--color-primary-light), #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.landing-footer {
+  padding: 40px 0;
+  border-top: 1px solid var(--color-border);
+  background: #070a13;
+  color: var(--text-muted);
+}
+
+.hover-light:hover {
+  color: var(--text-primary) !important;
+  transition: color 0.2s ease;
+}
+
+/* ─── Light Mode Theme Configuration ───────────────────────────────────────── */
+[data-theme="light"] {
+  --color-bg: #f8fafc; /* Slate-50 */
+  --color-bg-secondary: #f1f5f9; /* Slate-100 */
+  --color-surface: #ffffff;
+  --color-surface-hover: #e2e8f0; /* Slate-200 */
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-border-active: rgba(99, 102, 241, 0.5);
+
+  --text-primary: #0f172a; /* Slate-900 */
+  --text-secondary: #475569; /* Slate-600 */
+  --text-muted: #64748b; /* Slate-500 */
+
+  --sidebar-bg: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+  --color-primary-light: #4f46e5; /* darker primary indigo for light mode visibility */
+}
+
+/* Override overrides of text-muted for light mode */
+[data-theme="light"] .ums-card .text-muted, 
+[data-theme="light"] .ums-profile-card .text-muted,
+[data-theme="light"] .card-body .text-muted,
+[data-theme="light"] p.text-muted {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .landing-logo,
+[data-theme="light"] .sidebar-brand {
+  background: linear-gradient(135deg, var(--color-primary), #4f46e5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+[data-theme="light"] .landing-logo i,
+[data-theme="light"] .sidebar-brand i {
+  -webkit-text-fill-color: var(--color-primary);
+}
+
+[data-theme="light"] .landing-hero-title {
+  background: linear-gradient(135deg, #0f172a 30%, var(--color-primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="light"] .landing-footer {
+  background: #f1f5f9;
+  border-top: 1px solid var(--color-border);
+}
+
+[data-theme="light"] .landing-card-icon {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(79, 70, 229, 0.05));
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  color: var(--color-primary);
+}
+
+[data-theme="light"] .hover-light:hover {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .sidebar-user {
+  background: rgba(99, 102, 241, 0.04);
+}
+
+[data-theme="light"] .user-name {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .user-role-badge {
+  color: var(--color-primary);
+}
+
+[data-theme="light"] .sidebar-link {
+  color: var(--text-secondary);
+}
+[data-theme="light"] .sidebar-link:hover {
+  color: var(--text-primary);
+  background: rgba(99, 102, 241, 0.05);
+  border-left-color: rgba(99, 102, 241, 0.3);
+}
+[data-theme="light"] .sidebar-link.active {
+  color: var(--color-primary);
+  background: rgba(99, 102, 241, 0.08);
+  border-left-color: var(--color-primary);
+}
+
+[data-theme="light"] .ums-table {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .ums-table th {
+  background-color: var(--color-bg-secondary) !important;
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .ums-table td {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .decision-option {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border);
+}
+
+[data-theme="light"] .ums-info-box {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border);
+}
+
+[data-theme="light"] .ums-tabs .nav-link {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .ums-tabs .nav-link:hover {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .ums-tabs .nav-link.active {
+  color: var(--color-primary) !important;
+  background-color: var(--color-surface) !important;
+  border-bottom-color: var(--color-primary) !important;
 }
 

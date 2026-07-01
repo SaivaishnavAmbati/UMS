@@ -11,3 +11,18 @@ export const getStudentByUserId = (userId) =>
 
 export const createStudentProfile = (data) =>
   axiosInstance.post('/api/v1/students', data);
+
+export const updateStudentProfile = (data) =>
+  axiosInstance.put('/api/v1/students/profile', data);
+
+export const getPendingStudents = () =>
+  axiosInstance.get('/api/v1/students/pending');
+
+export const approveStudentProfile = (id, status, reason) => {
+  const params = new URLSearchParams();
+  params.append('status', status);
+  if (reason) {
+    params.append('reason', reason);
+  }
+  return axiosInstance.put(`/api/v1/students/${id}/approve?${params.toString()}`);
+};

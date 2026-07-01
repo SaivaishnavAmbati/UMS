@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Row, Col, Card, Badge, Spinner, InputGroup, Form } from 'react-bootstrap';
+import { Row, Col, Card, Badge, Spinner, InputGroup, Form, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import {
   searchCoursesThunk,
@@ -16,6 +16,7 @@ import {
   selectMyRegistrations,
 } from '../../store/slices/registrationSlice';
 import { fetchStudentProfile, selectStudentProfile } from '../../store/slices/studentSlice';
+import { getFacultyByCourseId } from '../../api/academicApi';
 
 // Parses raw backend error messages into user-friendly text
 const parseRegistrationError = (raw) => {
@@ -37,7 +38,6 @@ const parseRegistrationError = (raw) => {
   if (msg.toLowerCase().includes('deadline') || msg.toLowerCase().includes('registration closed')) {
     return 'The registration deadline for this semester has passed.';
   }
-  // If raw message is short and clean, show it directly
   if (msg.length < 120 && !msg.includes('[') && !msg.includes('{')) {
     return msg;
   }
@@ -57,6 +57,12 @@ const CourseSearchPage = () => {
   const [messages, setMessages] = useState({});
   const [profileChecked, setProfileChecked] = useState(false);
 
+  // Modal State for Instructor Selection
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [facultiesForCourse, setFacultiesForCourse] = useState([]);
+  const [selectedFacultyId, setSelectedFacultyId] = useState('');
+  const [loadingFaculties, setLoadingFaculties] = useState(false);
+
   useEffect(() => {
     dispatch(fetchCourses());
     dispatch(fetchMyRegistrations());
@@ -74,8 +80,7 @@ const CourseSearchPage = () => {
   const isRegistered = (courseId) =>
     myRegistrations.some((r) => r.courseId === courseId);
 
-  const handleRegister = async (course) => {
-    // Guard: must have a student profile
+  const handleOpenRegisterModal = async (course) => {
     if (!studentProfile) {
       setMessages((m) => ({
         ...m,
@@ -94,20 +99,42 @@ const CourseSearchPage = () => {
       return;
     }
 
-    setRegistering(course.id);
+    setSelectedCourse(course);
+    setLoadingFaculties(true);
+    setFacultiesForCourse([]);
+    setSelectedFacultyId('');
+    try {
+      const res = await getFacultyByCourseId(course.id);
+      setFacultiesForCourse(res.data?.data || []);
+    } catch (e) {
+      console.error("Failed to load instructors for course", e);
+    } finally {
+      setLoadingFaculties(false);
+    }
+  };
+
+  const handleConfirmRegister = async () => {
+    if (!selectedFacultyId || !selectedCourse) return;
+    
+    setRegistering(selectedCourse.id);
+    const courseId = selectedCourse.id;
     try {
       await dispatch(
-        submitCourseRegistration({ courseId: course.id, semesterId: activeSemester.id })
+        submitCourseRegistration({ 
+          courseId, 
+          facultyId: Number(selectedFacultyId) 
+        })
       ).unwrap();
       dispatch(fetchMyRegistrations());
       setMessages((m) => ({
         ...m,
-        [course.id]: { type: 'success', text: 'Registration submitted! Awaiting approval.' },
+        [courseId]: { type: 'success', text: 'Registration submitted! Awaiting approval.' },
       }));
+      setSelectedCourse(null);
     } catch (e) {
       setMessages((m) => ({
         ...m,
-        [course.id]: { type: 'danger', text: parseRegistrationError(e) },
+        [courseId]: { type: 'danger', text: parseRegistrationError(e) },
       }));
     } finally {
       setRegistering(null);
@@ -204,6 +231,7 @@ const CourseSearchPage = () => {
             const seats = course.remainingSeats ?? course.availableSeats ?? 0;
             const msg = messages[course.id];
             const isFull = seats === 0;
+            const isCourseActive = course.active;
 
             return (
               <Col key={course.id} md={6} xl={4}>
@@ -211,12 +239,17 @@ const CourseSearchPage = () => {
                   <Card.Body className="d-flex flex-column p-4">
                     <div className="d-flex justify-content-between align-items-start mb-3">
                       <Badge bg="primary" className="ums-badge">{course.code}</Badge>
-                      <Badge
-                        bg={seats > 10 ? 'success' : seats > 0 ? 'warning' : 'danger'}
-                        className="ums-badge"
-                      >
-                        {isFull ? 'Full' : `${seats} seats left`}
-                      </Badge>
+                      <div className="d-flex gap-2">
+                        {!isCourseActive && (
+                          <Badge bg="danger" className="ums-badge">Inactive</Badge>
+                        )}
+                        <Badge
+                          bg={seats > 10 ? 'success' : seats > 0 ? 'warning' : 'danger'}
+                          className="ums-badge"
+                        >
+                          {isFull ? 'Full' : `${seats} seats left`}
+                        </Badge>
+                      </div>
                     </div>
 
                     <h5 className="course-title mb-1">{course.title}</h5>
@@ -244,6 +277,10 @@ const CourseSearchPage = () => {
                         <button className="btn w-100 ums-btn-registered" disabled>
                           <i className="bi bi-check-circle-fill me-2"></i>Registered
                         </button>
+                      ) : !isCourseActive ? (
+                        <button className="btn w-100" disabled style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#fca5a5', borderRadius: '8px' }}>
+                          <i className="bi bi-exclamation-triangle me-2"></i>No Instructor Assigned
+                        </button>
                       ) : isFull ? (
                         <button className="btn w-100" disabled style={{ background: 'rgba(100,116,139,0.15)', border: '1px solid rgba(100,116,139,0.3)', color: '#64748b', borderRadius: '8px' }}>
                           <i className="bi bi-slash-circle me-2"></i>Course Full
@@ -252,7 +289,7 @@ const CourseSearchPage = () => {
                         <button
                           id={`register-course-${course.id}`}
                           className="btn w-100 ums-btn-primary"
-                          onClick={() => handleRegister(course)}
+                          onClick={() => handleOpenRegisterModal(course)}
                           disabled={registering === course.id || !activeSemester}
                           title={hasNoProfile ? 'Complete your profile first' : ''}
                         >
@@ -271,6 +308,58 @@ const CourseSearchPage = () => {
           })}
         </Row>
       )}
+
+      {/* Faculty Selection Modal */}
+      <Modal show={!!selectedCourse} onHide={() => setSelectedCourse(null)} centered className="ums-modal">
+        <Modal.Header closeButton>
+          <Modal.Title><i className="bi bi-person-badge me-2"></i>Select Instructor for {selectedCourse?.title}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {loadingFaculties ? (
+            <div className="text-center py-4"><Spinner animation="border" variant="primary" /></div>
+          ) : facultiesForCourse.length === 0 ? (
+            <div className="alert alert-warning mb-0">
+              <i className="bi bi-exclamation-triangle-fill me-2"></i>
+              No approved instructors are teaching this course at the moment. Course registration is unavailable.
+            </div>
+          ) : (
+            <div>
+              <div className="mb-3 p-3 ums-info-box">
+                <div><strong>Course:</strong> {selectedCourse?.title} ({selectedCourse?.code})</div>
+                <div><strong>Credits:</strong> {selectedCourse?.credits} Credits</div>
+              </div>
+              <div className="mb-4">
+                <label className="form-label" htmlFor="reg-faculty">Choose Instructor <span className="text-danger">*</span></label>
+                <select 
+                  id="reg-faculty"
+                  className="form-select ums-input" 
+                  value={selectedFacultyId} 
+                  onChange={(e) => setSelectedFacultyId(e.target.value)}
+                >
+                  <option value="">Select a faculty member...</option>
+                  {facultiesForCourse.map((fac) => (
+                    <option key={fac.id} value={fac.id}>
+                      {fac.firstName} {fac.lastName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button 
+                id="confirm-registration-btn"
+                className="btn ums-btn-primary w-100 py-2" 
+                disabled={!selectedFacultyId || registering === selectedCourse?.id}
+                onClick={handleConfirmRegister}
+              >
+                {registering === selectedCourse?.id ? (
+                  <><span className="spinner-border spinner-border-sm me-2" />Registering...</>
+                ) : (
+                  <><i className="bi bi-check2-circle me-2" />Confirm Registration</>
+                )}
+              </button>
+            </div>
+          )}
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };

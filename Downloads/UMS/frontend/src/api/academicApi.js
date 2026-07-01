@@ -60,3 +60,18 @@ export const getFacultyByUsername = (username) =>
 
 export const createFaculty = (data) =>
   axiosInstance.post('/api/v1/academic/faculty', data);
+
+export const getPendingFaculty = () =>
+  axiosInstance.get('/api/v1/academic/faculty/pending');
+
+export const approveFacultyProfile = (id, status, reason) => {
+  const params = new URLSearchParams();
+  params.append('status', status);
+  if (reason) {
+    params.append('reason', reason);
+  }
+  return axiosInstance.put(`/api/v1/academic/faculty/${id}/approve?${params.toString()}`);
+};
+
+export const getFacultyByCourseId = (courseId) =>
+  axiosInstance.get(`/api/v1/academic/faculty/course/${courseId}`);;

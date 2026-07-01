@@ -1,13 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout, selectUser, selectRole } from '../../store/slices/authSlice';
+import { getSystemTheme, applyTheme } from '../../utils/theme';
 
 const Sidebar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector(selectUser);
   const role = useSelector(selectRole);
+  const [theme, setTheme] = useState(getSystemTheme());
+
+  const handleThemeToggle = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    applyTheme(nextTheme);
+  };
 
   const handleLogout = () => {
     dispatch(logout());
@@ -20,6 +28,7 @@ const Sidebar = () => {
     { to: '/admin/semesters', icon: 'bi-calendar3', label: 'Semesters' },
     { to: '/admin/courses', icon: 'bi-book', label: 'Courses' },
     { to: '/admin/faculty', icon: 'bi-person-badge', label: 'Faculty' },
+    { to: '/admin/profile-approvals', icon: 'bi-person-check', label: 'Profile Approvals' },
     { to: '/admin/registrations', icon: 'bi-clipboard-check', label: 'Registrations' },
     { to: '/admin/audit', icon: 'bi-shield-lock', label: 'Audit Logs' },
     { to: '/admin/notifications', icon: 'bi-bell', label: 'Notifications' },
@@ -48,9 +57,19 @@ const Sidebar = () => {
   return (
     <div className="ums-sidebar d-flex flex-column">
       {/* Brand */}
-      <div className="sidebar-brand">
-        <i className="bi bi-mortarboard-fill me-2"></i>
-        <span>UMS</span>
+      <div className="sidebar-brand d-flex align-items-center justify-content-between">
+        <div className="d-flex align-items-center">
+          <i className="bi bi-mortarboard-fill me-2"></i>
+          <span>UMS</span>
+        </div>
+        <button 
+          className="btn btn-link p-0 text-secondary border-0 bg-transparent ms-2"
+          onClick={handleThemeToggle}
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          style={{ outline: 'none', boxShadow: 'none' }}
+        >
+          <i className={`bi ${theme === 'dark' ? 'bi-sun-fill text-warning fs-5' : 'bi-moon-stars-fill text-primary fs-5'}`}></i>
+        </button>
       </div>
 
       {/* User info */}

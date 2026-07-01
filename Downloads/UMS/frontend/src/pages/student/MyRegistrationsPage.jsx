@@ -68,6 +68,7 @@ const MyRegistrationsPage = () => {
                     <div className="d-flex gap-3 text-muted small">
                       <span><i className="bi bi-tag me-1"></i>{r.courseCode}</span>
                       <span><i className="bi bi-calendar me-1"></i>Sem #{r.semesterId}</span>
+                      {r.facultyName && <span><i className="bi bi-person-badge me-1"></i>Instructor: {r.facultyName}</span>}
                       {r.createdAt && <span><i className="bi bi-clock me-1"></i>{new Date(r.createdAt).toLocaleDateString()}</span>}
                     </div>
                     {r.rejectionReason && (

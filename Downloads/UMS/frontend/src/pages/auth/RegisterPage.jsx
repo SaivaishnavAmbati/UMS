@@ -3,6 +3,8 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useNavigate, Link } from 'react-router-dom';
 import { register } from '../../api/authApi';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../store/slices/authSlice';
 
 const registerSchema = Yup.object({
   username: Yup.string().required('Username is required').min(3, 'Min 3 characters').max(50),
@@ -41,6 +43,7 @@ const roles = [
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -51,6 +54,7 @@ const RegisterPage = () => {
     const { confirmPassword, ...payload } = values;
     try {
       await register(payload);
+      dispatch(logout()); // Log out any previous user session
       setSuccess(true);
       setTimeout(() => navigate('/login'), 2500);
     } catch (err) {

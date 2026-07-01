@@ -100,9 +100,9 @@ const AuditPage = () => {
                 logs.map((log, i) => (
                   <tr key={log.id || i}>
                     <td>{i + 1}</td>
-                    <td><Badge bg={actionColor(log.action)} className="ums-badge">{log.action}</Badge></td>
-                    <td><code className="ums-code">@{log.performedBy}</code></td>
-                    <td className="text-muted">{log.details}</td>
+                    <td><Badge bg={actionColor(log.activityType)} className="ums-badge">{log.activityType}</Badge></td>
+                    <td><code className="ums-code">@{log.username}</code></td>
+                    <td className="text-muted">{log.description}</td>
                     <td className="text-muted small">{new Date(log.timestamp).toLocaleString()}</td>
                   </tr>
                 ))
